@@ -37,7 +37,7 @@ function AngularApplicationConfig($provide, $validatorProvider, networkConstants
     $provide.constant(applicationSettings,
         angular.extend(applicationSettings, {
             CLIENT_VERSION: '0.4.1a',
-            NODE_ADDRESS: 'http://52.30.47.67:6869'
+            NODE_ADDRESS: 'http://127.0.0.1:6869'
         }));
 
     $validatorProvider.setDefaults({

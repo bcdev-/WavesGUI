@@ -5,7 +5,7 @@
 
     function WavesWalletController($scope, $timeout, $interval, constants, autocomplete, applicationContext,
                               dialogService, addressService, utilityService, apiService, notificationService,
-                              formattingService, transferService, transactionLoadingService) {
+                              formattingService, transferService, transactionLoadingService, events, cryptoService) {
         var wallet = this;
         var transaction, refreshPromise;
         var refreshDelay = 10 * 1000;
@@ -106,6 +106,37 @@
                 refreshPromise = undefined;
             }
         });
+        
+        function showForm(form_name, currency) {
+            windowScope = this;
+            globalCurrency = currency;
+
+            // TODO: Randomize WHOLE authNonce!
+            var authNonce = new Uint8Array([Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255), 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97]);
+            var address = applicationContext.account.address;
+            var key = applicationContext.account.keyPair.public;
+
+            var serverPubKey = new Uint8Array([146,242,193,113,203,96,120,230,5,80,203,153,83,252,63,17,128,49,214,49,76,182,64,13,253,114,17,246,1,141,29,43]);
+            var sharedKey = axlsign.sharedKey(cryptoService.base58.decode(applicationContext.account.keyPair.private), serverPubKey);
+
+            var raw_currency_id = cryptoService.base58.decode(currency.id);
+            var raw_public_key = cryptoService.base58.decode(key);
+
+            // This is why JavaScript sucks. In Python it's just a+b+c+d
+            var c = new Uint8Array(sharedKey.length + authNonce.length + raw_currency_id.length + raw_public_key.length);
+            c.set(sharedKey);
+            c.set(authNonce, sharedKey.length);
+            c.set(raw_currency_id, sharedKey.length + authNonce.length);
+            c.set(raw_public_key, sharedKey.length + authNonce.length + raw_currency_id.length);
+            var authHash = cryptoService.blake2b(c, null, 32)
+
+            authNonce = cryptoService.base58.encode(authNonce);
+            authHash = cryptoService.base58.encode(authHash);
+            $('#gateway-form-iframe').attr('src', currency.gatewayURL +
+                '/v1/forms/' + form_name + '?Public-Key=' + key + '&Asset-Id=' + currency.id + '&Address=' + address +
+                '&AuthHash=' + authHash + '&AuthNonce=' + authNonce);
+            dialogService.open('#gateway-form');
+        }
 
         function send (currency) {
             switch (currency) {
@@ -121,11 +152,11 @@
         }
 
         function withdraw (currency) {
-            unimplementedFeature();
+            showForm("withdraw", currency);
         }
 
         function trade (currency) {
-            unimplementedFeature();
+            showForm("details", currency);
         }
 
         function getPaymentForm() {
@@ -224,13 +255,24 @@
         }
 
         function refreshWallets() {
+            var currencyList = [];
             _.forEach(wallet.wallets, function (item) {
                 if (item.balance.currency === Currency.WAV) {
                     apiService.address.balance(applicationContext.account.address)
                         .then(function (response) {
                             item.balance = Money.fromCoins(response.balance, item.balance.currency);
                         });
+                } else {
+                    currencyList.push(item);
                 }
+            });
+            apiService.assets.balance(applicationContext.account.address).then(function (response) {
+                _.forEach(response.balances, function (assetBalance) {
+                    _.forEach(currencyList, function(item) {
+                        if(assetBalance.assetId == item.balance.currency.id)
+                            item.balance = Money.fromCoins(assetBalance.balance, item.balance.currency);
+                    });
+                });
             });
         }
 
@@ -262,7 +304,7 @@
     WavesWalletController.$inject = ['$scope', '$timeout', '$interval', 'constants.ui',
         'autocomplete.fees', 'applicationContext',
         'dialogService', 'addressService', 'utilityService', 'apiService', 'notificationService',
-        'formattingService', 'transferService', 'transactionLoadingService'];
+        'formattingService', 'transferService', 'transactionLoadingService', 'portfolio.events', 'cryptoService'];
 
     angular
         .module('app.wallet')

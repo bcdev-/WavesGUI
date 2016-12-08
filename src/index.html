@@ -30,6 +30,43 @@
     <link rel="stylesheet" href="css/tooltipster.min.css">
     <link rel="stylesheet" href="css/style.css">
 	<link href="img/favicon.ico" type="image/x-icon" rel="shortcut icon"/>
+    <script>
+        var windowScope, globalCurrency;
+        window.onmessage = function(e){
+            // TODO: As a security measure also check if the origin is the same as the Gateway
+            if (e.source == $('#gateway-form-iframe')[0].contentWindow) {
+                if (e.data[0] == 'gateway_close_form')
+                    /*
+                    Closes the iframe window.
+                    */
+                    angular.element.modal.close();
+                else if(e.data[0] == 'transfer') {
+                    /*
+                    Opens an asset transfer window prepopulated with data.
+
+                    Parameters:
+                    1. Target Account ID
+                    2. Asset ID
+                    3. Amount
+                    4. Description
+                    5. Followup form ID
+                    6. Session ID for the following form
+                    7. Transfer ID, so that the Gateway knows what bank account to withdraw money to
+                    
+                    Asset ID's can only be assets that origin from this Gateway. We must *not* allow the Gateway to request transfers of not-it's-own assets.
+                    If 5 is not null, the Gateway requests that we open a form after the transfer is successfully completed and send it a signed transaction.
+
+                    If Target Account ID is filled up, make the text box read only.
+                    */
+                    windowScope.openDialog("#asset-transfer-dialog");
+                    $('#asset-transfer-description').text(e.data[2]);
+                }
+                // TODO: Messages to change the buttons.
+                else
+                    console.log("Unknown message:", e.data[0]);
+            }
+        };
+    </script>
 </head>
 
 <body ng-controller="homeController as home" ng-switch on="home.screen">
@@ -39,7 +76,7 @@
         <div id="logo-container-centered" class="centerIt">
             <div id="logoo">
                 <img id="logo-spin" src="img/logo-spin.svg" />
-                <p id="networkCheck">Loading...</p>
+                <p id="networkCheck">Loadng...</p>
             </div>
         </div>
     </div>
@@ -250,6 +287,10 @@
             </div>
         </div>
         <!-- /shared blocks-->
+
+        <div id="gateway-form" waves-dialog show-buttons="false" is-error="false">
+            <iframe id="gateway-form-iframe" src="http://www.w3schools.com" width=700 height=400 border=0></iframe>
+        </div>
 
         <!-- HEADER -->
         <header class="fFade noSelect" ng-controller="mainMenuController as menu">
