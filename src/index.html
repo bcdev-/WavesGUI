@@ -367,6 +367,64 @@
                 <!-- BODY CONTENT -->
                 <section id="mBBody" class="fFade" ng-switch on="nav.currentTab">
                 <!-- WALLET TAB -->
+                <!--
+                <div class="noDisp" ng-controller="assetTransferController as transfer">
+                    <div id="asset-transfer-dialog-2" waves-dialog ok-button-caption="TRANSFER" on-dialog-ok="transfer.submitTransfer()">
+                        <form id="transfer-asset-form" name="transferAssetForm" novalidate ng-validate="transfer.validationOptions">
+                            <h2 class="sectionHeader">ASSET TRANSFER</h2>
+                            <div class="balanceAmt">
+                                <p>Asset balance: </p><span class="balancewaves">{{transfer.availableBalance.formatAmount()}}</span>
+                                <p>Waves balance: </p><span class="balancewaves">{{transfer.wavesBalance.formatAmount(true)}}</span>
+                            </div>
+                            <table class="wavesTable">
+                                <thead>
+                                    <th>DESCRIPTION</th>
+                                    <th>INPUT</th>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Recipient's Address</td>
+                                        <td>
+                                            <div class="form-field">
+                                                <input class="wInput form-control" name="assetRecipient" type="text" placeholder="Recipient" ng-model="transfer.recipient" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Amount</td>
+                                        <td>
+                                            <div class="form-field">
+                                                <input class="wInput form-control" name="assetAmount" type="text" placeholder="Amount" ng-model="transfer.amount" />
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fee</td>
+                                        <td>
+                                            <md-autocomplete md-input-name="assetFee" md-selected-item="transfer.autocomplete.selectedFee" md-search-text="transfer.autocomplete.searchText"
+                                                             md-items="item in transfer.autocomplete.querySearch(transfer.autocomplete.searchText)"
+                                                             md-item-text="item.amount.toString()" md-min-length="0" md-require-match="" md-no-cache="true"
+                                                             md-menu-class="popup-autocomplete">
+                                                <md-item-template>
+                                                    <span md-highlight-text="transfer.autocomplete.searchText">{{item.displayText}}</span>
+                                                </md-item-template>
+                                            </md-autocomplete>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                    <div id="transfer-asset-confirmation" waves-dialog ok-button-caption="CONFIRM" ok-button-enabled="!transfer.confirm.pendingTransfer" on-dialog-ok="transfer.broadcastTransaction()">
+                        <p>You are sending <span class="confirmation-value">{{transfer.confirm.amount.value}}</span>
+                            <span class="confirmation-value">{{transfer.confirm.amount.currency}}</span> with
+                            <span class="confirmation-value">{{transfer.confirm.fee.value}}</span>
+                            <span class="confirmation-value">{{transfer.confirm.fee.currency}}</span> fee <br/>to the address: <span class="confirmation-value">{{transfer.confirm.recipient}}</span>
+                        </p>
+                        <p>Please <span class="fontBold"> CONFIRM </span>to execute or <span class="fontBold"> CANCEL </span> to discard.</p>
+                    </div>
+                </div>-->
+                    
                 <div id="mBB-wallet" class="mBB-content" ng-switch-when="wallet" ng-controller="walletController as wallet">
                     <div id="wB-butSend-WAV" waves-dialog ok-button-caption="SUBMIT" cancel-button-visible="false" on-dialog-ok="wallet.submitPayment()">
                         <form id="send-waves-form" name="sendWavesForm" class="paymentForm" novalidate ng-validate="wallet.paymentValidationOptions">

@@ -3,7 +3,7 @@
 
     var DEFAULT_FEE_AMOUNT = '0.001';
 
-    function WavesWalletController($scope, $timeout, $interval, constants, autocomplete, applicationContext,
+    function WavesWalletController($scope, $rootScope, $timeout, $interval, constants, autocomplete, applicationContext,
                               dialogService, addressService, utilityService, apiService, notificationService,
                               formattingService, transferService, transactionLoadingService, events, cryptoService) {
         var wallet = this;
@@ -108,34 +108,36 @@
         });
         
         function showForm(form_name, currency) {
-            windowScope = this;
-            globalCurrency = currency;
+            if(currency.id != undefined) {
+                windowScope = this;
+                globalCurrency = currency;
 
-            // TODO: Randomize WHOLE authNonce!
-            var authNonce = new Uint8Array([Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255), 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97]);
-            var address = applicationContext.account.address;
-            var key = applicationContext.account.keyPair.public;
+                // TODO: Randomize WHOLE authNonce!
+                var authNonce = new Uint8Array([Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255), 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97]);
+                var address = applicationContext.account.address;
+                var key = applicationContext.account.keyPair.public;
 
-            var serverPubKey = new Uint8Array([146,242,193,113,203,96,120,230,5,80,203,153,83,252,63,17,128,49,214,49,76,182,64,13,253,114,17,246,1,141,29,43]);
-            var sharedKey = axlsign.sharedKey(cryptoService.base58.decode(applicationContext.account.keyPair.private), serverPubKey);
+                var serverPubKey = new Uint8Array([146,242,193,113,203,96,120,230,5,80,203,153,83,252,63,17,128,49,214,49,76,182,64,13,253,114,17,246,1,141,29,43]);
+                var sharedKey = axlsign.sharedKey(cryptoService.base58.decode(applicationContext.account.keyPair.private), serverPubKey);
 
-            var raw_currency_id = cryptoService.base58.decode(currency.id);
-            var raw_public_key = cryptoService.base58.decode(key);
+                var raw_currency_id = cryptoService.base58.decode(currency.id);
+                var raw_public_key = cryptoService.base58.decode(key);
 
-            // This is why JavaScript sucks. In Python it's just a+b+c+d
-            var c = new Uint8Array(sharedKey.length + authNonce.length + raw_currency_id.length + raw_public_key.length);
-            c.set(sharedKey);
-            c.set(authNonce, sharedKey.length);
-            c.set(raw_currency_id, sharedKey.length + authNonce.length);
-            c.set(raw_public_key, sharedKey.length + authNonce.length + raw_currency_id.length);
-            var authHash = cryptoService.blake2b(c, null, 32)
+                // This is why JavaScript sucks. In Python it's just a+b+c+d
+                var c = new Uint8Array(sharedKey.length + authNonce.length + raw_currency_id.length + raw_public_key.length);
+                c.set(sharedKey);
+                c.set(authNonce, sharedKey.length);
+                c.set(raw_currency_id, sharedKey.length + authNonce.length);
+                c.set(raw_public_key, sharedKey.length + authNonce.length + raw_currency_id.length);
+                var authHash = cryptoService.blake2b(c, null, 32)
 
-            authNonce = cryptoService.base58.encode(authNonce);
-            authHash = cryptoService.base58.encode(authHash);
-            $('#gateway-form-iframe').attr('src', currency.gatewayURL +
-                '/v1/forms/' + form_name + '?Public-Key=' + key + '&Asset-Id=' + currency.id + '&Address=' + address +
-                '&AuthHash=' + authHash + '&AuthNonce=' + authNonce);
-            dialogService.open('#gateway-form');
+                authNonce = cryptoService.base58.encode(authNonce);
+                authHash = cryptoService.base58.encode(authHash);
+                $('#gateway-form-iframe').attr('src', currency.gatewayURL +
+                    '/v1/forms/' + form_name + '?Public-Key=' + key + '&Asset-Id=' + currency.id + '&Address=' + address +
+                    '&AuthHash=' + authHash + '&AuthNonce=' + authNonce);
+                dialogService.open('#gateway-form');
+            }
         }
 
         function send (currency) {
@@ -145,7 +147,18 @@
                     break;
 
                 default:
-                    unimplementedFeature();
+//    angular.module('app.wallet').$rootScope
+//    $rootScope.$broadcast(events.ASSET_DETAILS, currency.id);
+                    //                    unimplementedFeature();
+                    angular.element(document.getElementById('navigationContainer')).scope().nav.changeTab("portfolio");
+                    setTimeout(function() {
+                        var currentCurrency = wallet.current.balance.currency;
+
+                        $rootScope.$broadcast(events.ASSET_TRANSFER, {
+                            assetId: currency.id,
+                            wavesBalance: new Money(wallet.transfer.amount, currency)
+                        });
+                    }, 2000);
             }
 
             wallet.current = findWalletByCurrency(currency);
@@ -301,7 +314,7 @@
         }
     }
 
-    WavesWalletController.$inject = ['$scope', '$timeout', '$interval', 'constants.ui',
+    WavesWalletController.$inject = ['$scope', '$rootScope', '$timeout', '$interval', 'constants.ui',
         'autocomplete.fees', 'applicationContext',
         'dialogService', 'addressService', 'utilityService', 'apiService', 'notificationService',
         'formattingService', 'transferService', 'transactionLoadingService', 'portfolio.events', 'cryptoService'];

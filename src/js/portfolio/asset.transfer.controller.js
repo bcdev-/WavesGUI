@@ -3,7 +3,7 @@
 
     var DEFAULT_FEE_AMOUNT = '0.001';
 
-    function WavesAssetTransferController($scope, $timeout, constants, events, autocomplete, applicationContext,
+    function WavesAssetTransferController($scope, $rootScope, $timeout, constants, events, autocomplete, applicationContext,
                                           assetService, apiService, dialogService,
                                           formattingService, notificationService) {
         var transaction;
@@ -63,7 +63,29 @@
         transfer.broadcastTransaction = broadcastTransaction;
 
         resetPaymentForm();
+/*                
+        $rootScope.$on(events.ASSET_TRANSFER, function (event, eventData) {
+            var asset = applicationContext.cache.assets[eventData.assetId];
+            transfer.availableBalance = asset.balance;
+            transfer.wavesBalance = eventData.wavesBalance;
+            transfer.asset = asset;
 
+            // update validation options and check how it affects form validation
+            transfer.validationOptions.rules.assetAmount.decimal = asset.currency.precision;
+            var minimumPayment = Money.fromCoins(1, asset.currency);
+            transfer.validationOptions.rules.assetAmount.min = minimumPayment.toTokens();
+            transfer.validationOptions.rules.assetAmount.max = transfer.availableBalance.toTokens();
+            transfer.validationOptions.messages.assetAmount.decimal = 'The amount to send must be a number ' +
+                'with no more than ' + minimumPayment.currency.precision +
+                ' digits after the decimal point (.)';
+            transfer.validationOptions.messages.assetAmount.min = 'Payment amount is too small. ' +
+                'It should be greater or equal to ' + minimumPayment.formatAmount(false);
+            transfer.validationOptions.messages.assetAmount.max = 'Payment amount is too big. ' +
+                'It should be less or equal to ' + transfer.availableBalance.formatAmount(false);
+
+            dialogService.open('#asset-transfer-dialog');
+        });
+*/
         $scope.$on(events.ASSET_TRANSFER, function (event, eventData) {
             var asset = applicationContext.cache.assets[eventData.assetId];
             transfer.availableBalance = asset.balance;
@@ -183,7 +205,7 @@
         }
     }
 
-    WavesAssetTransferController.$inject = ['$scope', '$timeout', 'constants.ui', 'portfolio.events',
+    WavesAssetTransferController.$inject = ['$scope', '$rootScope', '$timeout', 'constants.ui', 'portfolio.events',
         'autocomplete.fees', 'applicationContext', 'assetService', 'apiService', 'dialogService',
         'formattingService', 'notificationService'];
 
