@@ -109,8 +109,12 @@
         
         function showForm(form_name, currency) {
             if(currency.id != undefined) {
-                windowScope = this;
+                windowScope = $rootScope;
                 globalCurrency = currency;
+                globalWallet = wallet;
+                globalEvents = events;
+                globalConstants = constants;
+                globalDialogService = dialogService;
 
                 // TODO: Randomize WHOLE authNonce!
                 var authNonce = new Uint8Array([Math.floor(Math.random()*255), Math.floor(Math.random()*255), Math.floor(Math.random()*255), 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97, 97]);
@@ -140,6 +144,10 @@
             }
         }
 
+        function initiateWithdrawal () {
+            
+        }
+        
         function send (currency) {
             switch (currency) {
                 case Currency.WAV:
@@ -147,18 +155,15 @@
                     break;
 
                 default:
-//    angular.module('app.wallet').$rootScope
-//    $rootScope.$broadcast(events.ASSET_DETAILS, currency.id);
-                    //                    unimplementedFeature();
                     angular.element(document.getElementById('navigationContainer')).scope().nav.changeTab("portfolio");
                     setTimeout(function() {
                         var currentCurrency = wallet.current.balance.currency;
 
                         $rootScope.$broadcast(events.ASSET_TRANSFER, {
                             assetId: currency.id,
-                            wavesBalance: new Money(wallet.transfer.amount, currency)
+                            wavesBalance: new Money(constants.MINIMUM_TRANSACTION_FEE, Currency.WAV)
                         });
-                    }, 2000);
+                    }, 500);
             }
 
             wallet.current = findWalletByCurrency(currency);

@@ -63,35 +63,23 @@
         transfer.broadcastTransaction = broadcastTransaction;
 
         resetPaymentForm();
-/*                
-        $rootScope.$on(events.ASSET_TRANSFER, function (event, eventData) {
-            var asset = applicationContext.cache.assets[eventData.assetId];
-            transfer.availableBalance = asset.balance;
-            transfer.wavesBalance = eventData.wavesBalance;
-            transfer.asset = asset;
 
-            // update validation options and check how it affects form validation
-            transfer.validationOptions.rules.assetAmount.decimal = asset.currency.precision;
-            var minimumPayment = Money.fromCoins(1, asset.currency);
-            transfer.validationOptions.rules.assetAmount.min = minimumPayment.toTokens();
-            transfer.validationOptions.rules.assetAmount.max = transfer.availableBalance.toTokens();
-            transfer.validationOptions.messages.assetAmount.decimal = 'The amount to send must be a number ' +
-                'with no more than ' + minimumPayment.currency.precision +
-                ' digits after the decimal point (.)';
-            transfer.validationOptions.messages.assetAmount.min = 'Payment amount is too small. ' +
-                'It should be greater or equal to ' + minimumPayment.formatAmount(false);
-            transfer.validationOptions.messages.assetAmount.max = 'Payment amount is too big. ' +
-                'It should be less or equal to ' + transfer.availableBalance.formatAmount(false);
-
-            dialogService.open('#asset-transfer-dialog');
-        });
-*/
         $scope.$on(events.ASSET_TRANSFER, function (event, eventData) {
             var asset = applicationContext.cache.assets[eventData.assetId];
             transfer.availableBalance = asset.balance;
             transfer.wavesBalance = eventData.wavesBalance;
             transfer.asset = asset;
+            transfer.attachment = eventData.attachment;
 
+            var description = "";
+            if ("description" in eventData)
+                description = eventData.description;
+            transfer.description = description;
+
+            transfer.recipient = "";
+            if ("recipient" in eventData)
+                transfer.recipient = eventData.recipient;
+            
             // update validation options and check how it affects form validation
             transfer.validationOptions.rules.assetAmount.decimal = asset.currency.precision;
             var minimumPayment = Money.fromCoins(1, asset.currency);
@@ -133,7 +121,8 @@
             var assetTransfer = {
                 recipient: transfer.recipient,
                 amount: Money.fromTokens(transfer.amount, transfer.asset.currency),
-                fee: transferFee
+                fee: transferFee,
+                attachment: transfer.attachment
             };
             var sender = {
                 publicKey: applicationContext.account.keyPair.public,

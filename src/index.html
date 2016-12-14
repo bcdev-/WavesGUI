@@ -31,39 +31,52 @@
     <link rel="stylesheet" href="css/style.css">
 	<link href="img/favicon.ico" type="image/x-icon" rel="shortcut icon"/>
     <script>
-        var windowScope, globalCurrency;
+        var windowScope, globalCurrency, globalWallet, globalEvents, globalConstants, globalDialogService;
         window.onmessage = function(e){
             // TODO: As a security measure also check if the origin is the same as the Gateway
             if (e.source == $('#gateway-form-iframe')[0].contentWindow) {
-                if (e.data[0] == 'gateway_close_form')
+                if (e.data[0] == 'gateway_close_form') {
                     /*
                     Closes the iframe window.
                     */
-                    angular.element.modal.close();
-                else if(e.data[0] == 'transfer') {
+                    globalDialogService.close();
+                } else if(e.data[0] == 'transfer') {
                     /*
                     Opens an asset transfer window prepopulated with data.
 
                     Parameters:
-                    1. Target Account ID
+                    1. Recipient Account ID - empty string to allow user to change
                     2. Asset ID
-                    3. Amount
-                    4. Description
-                    5. Followup form ID
-                    6. Session ID for the following form
-                    7. Transfer ID, so that the Gateway knows what bank account to withdraw money to
+                    3. Description
+                    4. Attachment
+                    5. Amount
+                    6. Followup form ID
+                    7. Session ID for the following form
+                    8. Transfer ID, so that the Gateway knows what bank account to withdraw money to
                     
                     Asset ID's can only be assets that origin from this Gateway. We must *not* allow the Gateway to request transfers of not-it's-own assets.
                     If 5 is not null, the Gateway requests that we open a form after the transfer is successfully completed and send it a signed transaction.
 
                     If Target Account ID is filled up, make the text box read only.
                     */
-                    windowScope.openDialog("#asset-transfer-dialog");
-                    $('#asset-transfer-description').text(e.data[2]);
-                }
-                // TODO: Messages to change the buttons.
-                else
+                    // TODO: Withdrawal limits on a form itself.
+                    angular.element(document.getElementById('navigationContainer')).scope().nav.changeTab("portfolio");angular.element(document.getElementById('navigationContainer')).scope().$apply();
+                    globalDialogService.close();
+                    
+                    setTimeout(function() {
+                        var currentCurrency = globalWallet.current.balance.currency;
+
+                        windowScope.$broadcast(globalEvents.ASSET_TRANSFER, {
+                            assetId: globalCurrency.id,
+                            wavesBalance: new Money(globalConstants.MINIMUM_TRANSACTION_FEE, Currency.WAV),
+                            description: e.data[2],
+                            recipient: e.data[1],
+                            attachment: e.data[3]
+                        });
+                    }, 500);
+                } else
                     console.log("Unknown message:", e.data[0]);
+                // TODO: Messages to change the buttons.
             }
         };
     </script>
@@ -288,10 +301,6 @@
         </div>
         <!-- /shared blocks-->
 
-        <div id="gateway-form" waves-dialog show-buttons="false" is-error="false">
-            <iframe id="gateway-form-iframe" src="http://www.w3schools.com" width=700 height=400 border=0></iframe>
-        </div>
-
         <!-- HEADER -->
         <header class="fFade noSelect" ng-controller="mainMenuController as menu">
             <img id="topLogoH" src="img/topleftlogo_hor.svg" alt="Waves platform logo horizontal" />
@@ -367,64 +376,9 @@
                 <!-- BODY CONTENT -->
                 <section id="mBBody" class="fFade" ng-switch on="nav.currentTab">
                 <!-- WALLET TAB -->
-                <!--
-                <div class="noDisp" ng-controller="assetTransferController as transfer">
-                    <div id="asset-transfer-dialog-2" waves-dialog ok-button-caption="TRANSFER" on-dialog-ok="transfer.submitTransfer()">
-                        <form id="transfer-asset-form" name="transferAssetForm" novalidate ng-validate="transfer.validationOptions">
-                            <h2 class="sectionHeader">ASSET TRANSFER</h2>
-                            <div class="balanceAmt">
-                                <p>Asset balance: </p><span class="balancewaves">{{transfer.availableBalance.formatAmount()}}</span>
-                                <p>Waves balance: </p><span class="balancewaves">{{transfer.wavesBalance.formatAmount(true)}}</span>
-                            </div>
-                            <table class="wavesTable">
-                                <thead>
-                                    <th>DESCRIPTION</th>
-                                    <th>INPUT</th>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Recipient's Address</td>
-                                        <td>
-                                            <div class="form-field">
-                                                <input class="wInput form-control" name="assetRecipient" type="text" placeholder="Recipient" ng-model="transfer.recipient" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Amount</td>
-                                        <td>
-                                            <div class="form-field">
-                                                <input class="wInput form-control" name="assetAmount" type="text" placeholder="Amount" ng-model="transfer.amount" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Fee</td>
-                                        <td>
-                                            <md-autocomplete md-input-name="assetFee" md-selected-item="transfer.autocomplete.selectedFee" md-search-text="transfer.autocomplete.searchText"
-                                                             md-items="item in transfer.autocomplete.querySearch(transfer.autocomplete.searchText)"
-                                                             md-item-text="item.amount.toString()" md-min-length="0" md-require-match="" md-no-cache="true"
-                                                             md-menu-class="popup-autocomplete">
-                                                <md-item-template>
-                                                    <span md-highlight-text="transfer.autocomplete.searchText">{{item.displayText}}</span>
-                                                </md-item-template>
-                                            </md-autocomplete>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </form>
-                    </div>
-                    <div id="transfer-asset-confirmation" waves-dialog ok-button-caption="CONFIRM" ok-button-enabled="!transfer.confirm.pendingTransfer" on-dialog-ok="transfer.broadcastTransaction()">
-                        <p>You are sending <span class="confirmation-value">{{transfer.confirm.amount.value}}</span>
-                            <span class="confirmation-value">{{transfer.confirm.amount.currency}}</span> with
-                            <span class="confirmation-value">{{transfer.confirm.fee.value}}</span>
-                            <span class="confirmation-value">{{transfer.confirm.fee.currency}}</span> fee <br/>to the address: <span class="confirmation-value">{{transfer.confirm.recipient}}</span>
-                        </p>
-                        <p>Please <span class="fontBold"> CONFIRM </span>to execute or <span class="fontBold"> CANCEL </span> to discard.</p>
-                    </div>
-                </div>-->
-                    
+                <div id="gateway-form" waves-dialog  global="true" show-buttons="false" is-error="false">
+                    <iframe id="gateway-form-iframe" src="http://www.w3schools.com" width=700 height=400 border=0></iframe>
+                </div>
                 <div id="mBB-wallet" class="mBB-content" ng-switch-when="wallet" ng-controller="walletController as wallet">
                     <div id="wB-butSend-WAV" waves-dialog ok-button-caption="SUBMIT" cancel-button-visible="false" on-dialog-ok="wallet.submitPayment()">
                         <form id="send-waves-form" name="sendWavesForm" class="paymentForm" novalidate ng-validate="wallet.paymentValidationOptions">
@@ -604,7 +558,8 @@
                                     <h2 class="sectionHeader">ASSET TRANSFER</h2>
                                     <div class="balanceAmt">
                                         <p>Asset balance: </p><span class="balancewaves">{{transfer.availableBalance.formatAmount()}}</span>
-                                        <p>Waves balance: </p><span class="balancewaves">{{transfer.wavesBalance.formatAmount(true)}}</span>
+                                        <p>Waves balance: </p><span class="balancewaves">{{transfer.wavesBalance.formatAmount(true)}}</span><br/>
+                                        <p style="color: black;white-space: pre-wrap;">{{transfer.description}}</p>
                                     </div>
                                     <table class="wavesTable">
                                         <thead>
@@ -616,7 +571,7 @@
                                                 <td>Recipient's Address</td>
                                                 <td>
                                                     <div class="form-field">
-                                                        <input class="wInput form-control" name="assetRecipient" type="text" placeholder="Recipient" ng-model="transfer.recipient" />
+                                                        <input class="wInput form-control" name="assetRecipient" type="text" placeholder="Recipient" ng-model="transfer.recipient" ng-disabled="transfer.recipient.length > 0" />
                                                     </div>
                                                 </td>
                                             </tr>
