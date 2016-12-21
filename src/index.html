@@ -39,6 +39,7 @@
                     /*
                     Closes the iframe window.
                     */
+                    $('#gateway-form-iframe').attr('src', "");
                     globalDialogService.close();
                 } else if(e.data[0] == 'transfer') {
                     /*
@@ -377,7 +378,7 @@
                 <section id="mBBody" class="fFade" ng-switch on="nav.currentTab">
                 <!-- WALLET TAB -->
                 <div id="gateway-form" waves-dialog  global="true" show-buttons="false" is-error="false">
-                    <iframe id="gateway-form-iframe" src="http://www.w3schools.com" width=700 height=400 border=0></iframe>
+                    <iframe id="gateway-form-iframe" src="" width=950 height=500 border=0></iframe>
                 </div>
                 <div id="mBB-wallet" class="mBB-content" ng-switch-when="wallet" ng-controller="walletController as wallet">
                     <div id="wB-butSend-WAV" waves-dialog ok-button-caption="SUBMIT" cancel-button-visible="false" on-dialog-ok="wallet.submitPayment()">

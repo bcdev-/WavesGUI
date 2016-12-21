@@ -121,8 +121,7 @@
                 var address = applicationContext.account.address;
                 var key = applicationContext.account.keyPair.public;
 
-                var serverPubKey = new Uint8Array([146,242,193,113,203,96,120,230,5,80,203,153,83,252,63,17,128,49,214,49,76,182,64,13,253,114,17,246,1,141,29,43]);
-                var sharedKey = axlsign.sharedKey(cryptoService.base58.decode(applicationContext.account.keyPair.private), serverPubKey);
+                var sharedKey = axlsign.sharedKey(cryptoService.base58.decode(applicationContext.account.keyPair.private), currency.gatewayCommunicationKey);
 
                 var raw_currency_id = cryptoService.base58.decode(currency.id);
                 var raw_public_key = cryptoService.base58.decode(key);
@@ -137,10 +136,14 @@
 
                 authNonce = cryptoService.base58.encode(authNonce);
                 authHash = cryptoService.base58.encode(authHash);
-                $('#gateway-form-iframe').attr('src', currency.gatewayURL +
-                    '/v1/forms/' + form_name + '?Public-Key=' + key + '&Asset-Id=' + currency.id + '&Address=' + address +
-                    '&AuthHash=' + authHash + '&AuthNonce=' + authNonce);
+                $('#gateway-form-iframe').attr('src', "");
                 dialogService.open('#gateway-form');
+                setTimeout(function() {
+                    $('#gateway-form-iframe').attr('src', currency.gatewayURL +
+                        '/v1/forms/' + form_name + '?Public-Key=' + key + '&Asset-Id=' + currency.id + '&Address=' + address +
+                        '&AuthHash=' + authHash + '&AuthNonce=' + authNonce);
+                    }, 0
+                );
             }
         }
 
