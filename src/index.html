@@ -75,6 +75,8 @@
                             attachment: e.data[3]
                         });
                     }, 500);
+                } else if(e.data[0] == 'open_link_in_a_new_window') {
+                    window.open(e.data[1], '_blank');
                 } else
                     console.log("Unknown message:", e.data[0]);
                 // TODO: Messages to change the buttons.
@@ -378,7 +380,7 @@
                 <section id="mBBody" class="fFade" ng-switch on="nav.currentTab">
                 <!-- WALLET TAB -->
                 <div id="gateway-form" waves-dialog  global="true" show-buttons="false" is-error="false">
-                    <iframe id="gateway-form-iframe" src="" width=950 height=500 border=0></iframe>
+                    <iframe sandbox="allow-forms allow-scripts allow-same-origin" id="gateway-form-iframe" src="" width=950 height=500 border=0></iframe>
                 </div>
                 <div id="mBB-wallet" class="mBB-content" ng-switch-when="wallet" ng-controller="walletController as wallet">
                     <div id="wB-butSend-WAV" waves-dialog ok-button-caption="SUBMIT" cancel-button-visible="false" on-dialog-ok="wallet.submitPayment()">

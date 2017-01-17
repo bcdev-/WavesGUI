@@ -24,19 +24,10 @@
 
         wallet.wallets = [
             {
-                balance: new Money(0, Currency.USD)
-            },
-            {
-                balance: new Money(0, Currency.EUR)
-            },
-            {
-                balance: new Money(0, Currency.BTC)
-            },
-            {
                 balance: new Money(0, Currency.WAV)
             },
             {
-                balance: new Money(0, Currency.CNY)
+                balance: new Money(0, Currency.BTC)
             }
         ];
         wallet.current = wallet.wallets[0];
@@ -158,6 +149,8 @@
                     break;
 
                 default:
+                    showForm("send", currency);
+                    /*
                     angular.element(document.getElementById('navigationContainer')).scope().nav.changeTab("portfolio");
                     setTimeout(function() {
                         var currentCurrency = wallet.current.balance.currency;
@@ -167,13 +160,14 @@
                             wavesBalance: new Money(constants.MINIMUM_TRANSACTION_FEE, Currency.WAV)
                         });
                     }, 500);
+                    */
             }
 
             wallet.current = findWalletByCurrency(currency);
         }
 
         function withdraw (currency) {
-            showForm("withdraw", currency);
+            unimplementedFeature();
         }
 
         function trade (currency) {

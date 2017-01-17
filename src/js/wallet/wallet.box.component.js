@@ -10,7 +10,7 @@
             displayName: Currency.WAV.displayName
         };
         mapping[Currency.BTC.displayName] = {
-            image: 'wB-bg-BTC.svg',
+            image: 'wB-bg-DOGE.svg',
             displayName: Currency.BTC.displayName
         };
         mapping[Currency.USD.displayName] = {
@@ -22,7 +22,7 @@
             displayName: Currency.EUR.displayName
         };
         mapping[Currency.CNY.displayName] = {
-            image: 'wB-bg-RMB.svg',
+            image: 'wB-bg-RMB.svg', 
             displayName: Currency.CNY.displayName
         };
 
@@ -59,7 +59,7 @@
                         '<div class="wB-but wB-butSend fade"><p>SEND</p></div>' +
                     '</a>' +
                     '<a ng-click="$ctrl.onWithdraw({currency: $ctrl.balance.currency})">' +
-                        '<div class="wB-but wB-butRec fade"><p>WITHDRAW</p></div>' +
+                        '<div class="wB-but wB-butRec fade"><p>TRADE</p></div>' +
                     '</a>' +
                     '<a ng-click="$ctrl.onTrade({currency: $ctrl.balance.currency})">' +
                         '<div class="wB-but wB-butTrade fade"><p>DETAILS</p></div>' +
